@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture DARCUS Agent</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f6f8; --surface:#ffffff; --ink:#15202b; --muted:#566574; --line:#c6d0da;
+  --accent:#0b7f78; --accent-soft:#ddf0ee; --ext:#eef1f5;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e141a; --surface:#16202a; --ink:#e5ebf0; --muted:#93a2b1; --line:#2c3a48;
+    --accent:#4cc2b8; --accent-soft:#15302e; --ext:#111a22;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e141a; --surface:#16202a; --ink:#e5ebf0; --muted:#93a2b1; --line:#2c3a48;
+  --accent:#4cc2b8; --accent-soft:#15302e; --ext:#111a22;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 "IBM Plex Sans",system-ui,sans-serif;padding-inline:16px;padding-block:32px 56px}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1{font-size:clamp(1.6rem,4vw,2.2rem);line-height:1.15;margin:0 0 8px;font-weight:600;text-wrap:balance}
+h2{font-size:1.15rem;margin:0 0 12px;font-weight:600;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lead{color:var(--muted)}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+figure{margin:0;display:flex;flex-direction:column;gap:10px}
+figcaption{color:var(--muted);font-size:.9rem;max-width:75ch}
+svg{display:block;min-width:720px;width:100%;height:auto;color:var(--ink)}
+svg text{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:12px;fill:var(--ink)}
+svg .t{font-weight:600;font-size:13px}
+svg .s{fill:var(--muted);font-size:11px}
+svg .m{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--muted)}
+svg .lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;fill:var(--muted)}
+.box{fill:var(--surface);stroke:var(--line);stroke-width:1.2}
+.grp{fill:var(--bg);stroke:var(--line);stroke-width:1.2}
+.core{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+.ext{fill:var(--ext);stroke:var(--muted);stroke-width:1.2;stroke-dasharray:5 4}
+.arr{stroke:var(--ink);stroke-width:1.3;fill:none}
+.arr-a{stroke:var(--accent);stroke-width:1.8;fill:none}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tr:last-child td{border-bottom:0}
+td:first-child{white-space:nowrap;color:var(--accent)}
+ol.flow{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:s}
+ol.flow li{counter-increment:s;display:grid;grid-template-columns:2rem 1fr;gap:10px;max-width:75ch}
+ol.flow li::before{content:counter(s);font-family:"IBM Plex Mono",monospace;color:var(--accent);font-weight:500}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Architecture de DARCUS Agent</h1>
+    <p class="lead">Un agent IA en Python : une boucle ReAct pilotée par un LLM local, des agents de fond qui maintiennent la mémoire, et une API FastAPI qui l'expose aux clients web et mobile.</p>
+  </header>
+
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 920 640" role="img" aria-label="Les clients appellent l'API FastAPI, qui appelle le cœur JanAgent. Le cœur dialogue avec le serveur LLM et le registre d'outils, et persiste dans SQLite, où cinq agents de fond lisent et écrivent aussi.">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker>
+        <marker id="ha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--accent)"/></marker>
+      </defs>
+
+      <!-- Entrées -->
+      <rect class="box" x="20" y="16" width="150" height="48" rx="5"/>
+      <text class="t" x="95" y="37" text-anchor="middle">Console</text>
+      <text class="m" x="95" y="53" text-anchor="middle">python main.py</text>
+
+      <rect class="box" x="200" y="16" width="700" height="48" rx="5"/>
+      <text class="t" x="550" y="37" text-anchor="middle">Clients web et mobile</text>
+      <text class="m" x="550" y="53" text-anchor="middle">Angular · Expo — jeton JWT</text>
+
+      <!-- API -->
+      <rect class="grp" x="200" y="112" width="700" height="90" rx="6"/>
+      <text class="t" x="212" y="130">API FastAPI</text>
+      <rect class="box" x="212" y="146" width="160" height="48" rx="4"/>
+      <text class="t" x="292" y="166" text-anchor="middle">REST</text>
+      <text class="m" x="292" y="182" text-anchor="middle">/api/… conversations</text>
+      <rect class="box" x="384" y="146" width="160" height="48" rx="4"/>
+      <text class="t" x="464" y="166" text-anchor="middle">SSE</text>
+      <text class="m" x="464" y="182" text-anchor="middle">/api/v2/chat/send</text>
+      <rect class="box" x="556" y="146" width="160" height="48" rx="4"/>
+      <text class="t" x="636" y="166" text-anchor="middle">Modèles ML</text>
+      <text class="m" x="636" y="182" text-anchor="middle">/api/models</text>
+      <rect class="box" x="728" y="146" width="160" height="48" rx="4"/>
+      <text class="t" x="808" y="166" text-anchor="middle">Générateur</text>
+      <text class="m" x="808" y="182" text-anchor="middle">pr_generator</text>
+
+      <line class="arr" x1="550" y1="64" x2="550" y2="110" marker-end="url(#ah)"/>
+      <text class="lab" x="560" y="92">HTTP · SSE</text>
+
+      <!-- Cœur -->
+      <rect class="core" x="20" y="236" width="540" height="230" rx="6"/>
+      <text class="t" x="36" y="256">JanAgent — core.py</text>
+      <rect class="box" x="36" y="272" width="156" height="52" rx="4"/>
+      <text class="t" x="114" y="293" text-anchor="middle">Classification</text>
+      <text class="s" x="114" y="310" text-anchor="middle">heuristique, puis LLM</text>
+      <rect class="box" x="204" y="272" width="156" height="52" rx="4"/>
+      <text class="t" x="282" y="293" text-anchor="middle">Planificateur</text>
+      <text class="s" x="282" y="310" text-anchor="middle">plan en étapes</text>
+      <rect class="box" x="372" y="272" width="172" height="52" rx="4"/>
+      <text class="t" x="458" y="293" text-anchor="middle">Agent spécialisé</text>
+      <text class="s" x="458" y="310" text-anchor="middle">conversation · coding · research</text>
+
+      <rect class="box" x="36" y="338" width="508" height="64" rx="4"/>
+      <text class="t" x="290" y="356" text-anchor="middle">Boucle ReAct</text>
+      <text class="m" x="290" y="373" text-anchor="middle">LLM → react_parser → appel d'outil → observation → …</text>
+      <text class="s" x="290" y="391" text-anchor="middle">puis critic-agent : relecture du code généré</text>
+      <rect class="box" x="36" y="414" width="508" height="40" rx="4"/>
+      <text class="t" x="290" y="431" text-anchor="middle">Exécution sécurisée des commandes</text>
+      <text class="s" x="290" y="446" text-anchor="middle">liste autorisée · mots interdits · auto-approbation</text>
+
+      <!-- Console → cœur, API → cœur -->
+      <line class="arr" x1="95" y1="64" x2="95" y2="234" marker-end="url(#ah)"/>
+      <line class="arr" x1="300" y1="202" x2="300" y2="234" marker-end="url(#ah)"/>
+      <text class="lab" x="310" y="223">requête</text>
+
+      <!-- Externes -->
+      <rect class="ext" x="640" y="236" width="210" height="56" rx="5"/>
+      <text class="t" x="745" y="258" text-anchor="middle">Serveur LLM</text>
+      <text class="m" x="745" y="276" text-anchor="middle">Ollama :11434</text>
+      <line class="arr-a" x1="562" y1="264" x2="638" y2="264" marker-start="url(#ha)" marker-end="url(#ha)"/>
+      <text class="lab" x="600" y="256" text-anchor="middle">stream</text>
+
+      <rect class="box" x="640" y="308" width="210" height="72" rx="5"/>
+      <text class="t" x="745" y="330" text-anchor="middle">Registre d'outils</text>
+      <text class="m" x="745" y="348" text-anchor="middle">@tool · base_tools</text>
+      <text class="m" x="745" y="364" text-anchor="middle">custom_tools/</text>
+      <line class="arr-a" x1="562" y1="344" x2="638" y2="344" marker-start="url(#ha)" marker-end="url(#ha)"/>
+      <text class="lab" x="600" y="336" text-anchor="middle">call/obs.</text>
+
+      <rect class="ext" x="640" y="396" width="260" height="56" rx="5"/>
+      <text class="t" x="770" y="418" text-anchor="middle">PostgreSQL</text>
+      <text class="m" x="770" y="436" text-anchor="middle">données de pr_generator</text>
+      <path class="arr" d="M872 194 V394" marker-end="url(#ah)"/>
+
+      <!-- Runtime + store -->
+      <rect class="grp" x="20" y="500" width="540" height="120" rx="6"/>
+      <text class="t" x="36" y="520">AgentRuntime — 5 threads de fond</text>
+      <g>
+        <rect class="box" x="32" y="536" width="96" height="60" rx="4"/>
+        <text class="t" x="80" y="558" text-anchor="middle">Memory</text><text class="s" x="80" y="576" text-anchor="middle">résumés</text>
+        <rect class="box" x="136" y="536" width="96" height="60" rx="4"/>
+        <text class="t" x="184" y="558" text-anchor="middle">Retrieval</text><text class="s" x="184" y="576" text-anchor="middle">recherche</text>
+        <rect class="box" x="240" y="536" width="96" height="60" rx="4"/>
+        <text class="t" x="288" y="558" text-anchor="middle">Performance</text><text class="s" x="288" y="576" text-anchor="middle">métriques</text>
+        <rect class="box" x="344" y="536" width="96" height="60" rx="4"/>
+        <text class="t" x="392" y="558" text-anchor="middle">Config</text><text class="s" x="392" y="576" text-anchor="middle">rechargement</text>
+        <rect class="box" x="448" y="536" width="104" height="60" rx="4"/>
+        <text class="t" x="500" y="558" text-anchor="middle">Task</text><text class="s" x="500" y="576" text-anchor="middle">file de tâches</text>
+      </g>
+
+      <rect class="core" x="640" y="500" width="260" height="120" rx="6"/>
+      <text class="t" x="656" y="522">Store SQLite — database.py</text>
+      <text class="m" x="656" y="546">conversations · messages</text>
+      <text class="m" x="656" y="562">résumés · tâches · plans</text>
+      <text class="m" x="656" y="578">réglages · métriques · événements</text>
+      <text class="m" x="656" y="594">règles de sécurité · modèles ML</text>
+
+      <path class="arr-a" d="M562 440 H600 V520 H638" marker-end="url(#ha)"/>
+      <text class="lab" x="606" y="486">persiste</text>
+      <line class="arr-a" x1="562" y1="580" x2="638" y2="580" marker-start="url(#ha)" marker-end="url(#ha)"/>
+      <text class="lab" x="600" y="572" text-anchor="middle">tick</text>
+    </svg>
+    </div>
+    <figcaption>Le cœur JanAgent reçoit les requêtes de la console ou de l'API, dialogue avec le LLM et les outils, et écrit dans SQLite. Les cinq agents de fond travaillent sur ce même store, indépendamment des requêtes. Trait plein vert : échange de données ; pointillés : service externe.</figcaption>
+  </figure>
+
+  <section>
+    <h2>Modules</h2>
+    <div class="scroll">
+    <table>
+      <thead><tr><th>Chemin</th><th>Rôle</th></tr></thead>
+      <tbody>
+        <tr><td><code>main.py</code></td><td>Point d'entrée : console, ou serveur avec <code>--api</code>.</td></tr>
+        <tr><td><code>jan_agent/core.py</code></td><td>Classe <code>JanAgent</code> : contexte, classification, boucle ReAct, exécution sécurisée des commandes, streaming.</td></tr>
+        <tr><td><code>jan_agent/planner.py</code></td><td>Génère un plan d'étapes avant l'exécution.</td></tr>
+        <tr><td><code>jan_agent/react_parser.py</code></td><td>Lit les blocs <code>thought</code>, <code>call</code> et <code>response</code> produits par le LLM.</td></tr>
+        <tr><td><code>jan_agent/agents/</code></td><td>Agents de fond (<code>BackgroundAgent</code>, un thread chacun) et agents spécialisés à prompt propre : Conversation, Coding, Research, Critic.</td></tr>
+        <tr><td><code>jan_agent/runtime.py</code></td><td><code>AgentRuntime</code> : démarre et arrête les cinq agents de fond.</td></tr>
+        <tr><td><code>jan_agent/tools/</code></td><td>Registre d'outils (décorateur <code>@tool</code>) et outils de base ; <code>custom_tools/</code> est chargé dynamiquement.</td></tr>
+        <tr><td><code>jan_agent/database.py</code></td><td>Persistance SQLite : conversations, plans, tâches, métriques, règles de sécurité, modèles ML.</td></tr>
+        <tr><td><code>jan_agent/api/</code></td><td>Routes REST et SSE, authentification JWT, schémas Pydantic.</td></tr>
+        <tr><td><code>ml_models/</code></td><td>Cycle de vie des modèles scikit-learn : entraînement, versions, évaluation, prédiction, routes <code>/api/models</code>.</td></tr>
+        <tr><td><code>pr_generator/</code></td><td>Générateur de données et tableau de bord Streamlit, sur PostgreSQL.</td></tr>
+        <tr><td><code>config.json</code></td><td>Serveur et modèle LLM, seuils de mémoire, règles de sécurité, prompt système.</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Parcours d'un message en mode API</h2>
+    <ol class="flow">
+      <li><span>Le client envoie le message à <code>/api/v2/chat/send</code> avec son jeton JWT, vérifié avant tout traitement.</span></li>
+      <li><span>JanAgent classifie la requête (heuristique, sinon appel LLM) : <code>conversation</code>, <code>coding</code> ou <code>research</code>. L'agent retenu fournit son prompt, surchargeable dans <code>config.json</code>.</span></li>
+      <li><span>La boucle ReAct appelle le LLM : celui-ci répond ou demande un outil.</span></li>
+      <li><span>Le registre exécute l'outil ; l'observation retourne au LLM jusqu'à la réponse finale. Pour du code, le <code>critic-agent</code> relit la réponse et signale les défauts ou failles.</span></li>
+      <li><span>La réponse arrive au client en flux (SSE) et l'échange est enregistré dans SQLite.</span></li>
+      <li><span>En parallèle, <code>Memory</code> résume les longues conversations et <code>Performance</code> publie ses métriques.</span></li>
+    </ol>
+  </section>
+</main>
+</body>
+</html>

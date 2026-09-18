@@ -1,0 +1,21 @@
+{
+    "server": {
+        "url": "http://localhost:11434",
+        "token": "1234"
+    },
+    "database": {
+        "driver": "postgresql",
+        "user": "jan_factory",
+        "password": "jan_factory",
+        "host": "localhost",
+        "port": 5432,
+        "name": "jan_factory",
+        "schema": "jan"
+    },
+    "storage": {
+        "base_dir": "datasets"
+    },
+    "api": {
+        "port": 5000
+    }
+}

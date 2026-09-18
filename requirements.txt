@@ -1,0 +1,22 @@
+# Serveur API
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+PyJWT>=2.8
+sqlalchemy>=2.0
+psycopg2-binary>=2.9
+tenacity>=8.2
+
+# Agent / outils
+requests>=2.31
+ddgs>=6.0
+
+# ML models (pr_generator, ml_models)
+pandas>=2.2
+scikit-learn>=1.4
+joblib>=1.3
+plotly>=5.20
+streamlit>=1.32
+
+# Tests
+pytest>=8.0

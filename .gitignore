@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Environnement virtuel / données locales lourdes
+vr/
+data/
+scratch/
+
+# État local de l'agent
+*.sqlite3
+*.sqlite3-*
+backups/
+memory.json
+activity_log.txt
+*.log
+
+# Secrets
+.env
+.env.*
